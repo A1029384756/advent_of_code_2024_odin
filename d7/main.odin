@@ -116,9 +116,7 @@ p2 :: proc(input: string) -> (res: int) {
 			sa.append(&ops, c.parse_int_fast(num))
 		}
 
-		if test_operations(sa.slice(&ops), lhs, false) {
-			res += lhs
-		} else if test_operations(sa.slice(&ops), lhs, true) {
+		if test_operations(sa.slice(&ops), lhs, true) {
 			res += lhs
 		}
 	}
