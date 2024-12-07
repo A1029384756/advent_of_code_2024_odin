@@ -62,21 +62,25 @@ main :: proc() {
 	}
 }
 
-count_digits :: proc(val: int) -> int {
-	assert(val >= 0)
+count_digits :: proc "contextless" (val: int) -> int {
 	res := 10
 	for val >= res do res *= 10
 	return res
 }
 
-test_operations :: proc(ops: []int, expected: int, part_2 := false) -> bool {
-	if expected == 0 && len(ops) == 0 do return true
-	else if len(ops) == 0 do return false
+test_operations :: proc "contextless" (ops: []int, expected: int, $part_2: bool) -> bool {
+	if len(ops) == 1 do return expected == ops[0]
+	else if len(ops) == 0 do return expected == 0
+
 	last_op := ops[len(ops) - 1]
 	next_ops := ops[:len(ops) - 1]
 
+	when part_2 {if (expected - last_op) % count_digits(last_op) == 0 &&
+		   test_operations(next_ops, (expected - last_op) / count_digits(last_op), part_2) {
+			return true
+		}
+	}
 	if expected % last_op == 0 && test_operations(next_ops, expected / last_op, part_2) do return true
-	if part_2 && (expected - last_op) % count_digits(last_op) == 0 && test_operations(next_ops, (expected - last_op) / count_digits(last_op), part_2) do return true
 	if expected - last_op >= 0 && test_operations(next_ops, expected - last_op, part_2) do return true
 	return false
 }
@@ -93,7 +97,7 @@ p1 :: proc(input: string) -> (res: int) {
 			sa.append(&ops, c.parse_int_fast(num))
 		}
 
-		if test_operations(sa.slice(&ops), lhs) {
+		if test_operations(sa.slice(&ops), lhs, false) {
 			res += lhs
 		}
 	}
@@ -112,7 +116,7 @@ p2 :: proc(input: string) -> (res: int) {
 			sa.append(&ops, c.parse_int_fast(num))
 		}
 
-		if test_operations(sa.slice(&ops), lhs) {
+		if test_operations(sa.slice(&ops), lhs, true) {
 			res += lhs
 		} else if test_operations(sa.slice(&ops), lhs, true) {
 			res += lhs
