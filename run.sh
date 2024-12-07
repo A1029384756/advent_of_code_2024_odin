@@ -8,7 +8,7 @@ fi
 
 for day in "$@"
 do
-  if [[ $day -eq "all" ]]; then
+  if [[ "$day" = "all" ]]; then
     for i in $(seq 1 25);
     do
       if [[ ! -d "d${i}" ]]; then
@@ -19,6 +19,11 @@ do
       printf "\n"
     done
     exit 0
+  fi
+
+  re='^[0-9]+$'
+  if ! [[ $day =~ $re ]] ; then
+    echo "error: Day not a number" >&2; exit 1
   fi
 
   if [[ $day -gt 0 && $day -lt 26 ]]; then
