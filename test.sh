@@ -31,7 +31,7 @@ do
     fi
 
     printf "Day %d Results:\n" $day
-    odin test "d${day}" -out:tests/"d${i}"
+    odin test "d${day}" -out:tests/"d${day}"
     printf "\n"
   fi
 done

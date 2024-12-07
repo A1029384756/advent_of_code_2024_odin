@@ -15,7 +15,7 @@ do
         continue
       fi
       printf "Day %d Results:\n" $i
-      odin run "d${i}" $SPEED_FLAGS -out:builds/"d${i}"
+      odin run "d${i}" $SPEED_FLAGS -out:builds/"d${i}" -- "./input/d${i}.txt"
       printf "\n"
     done
     exit 0
@@ -33,7 +33,7 @@ do
     fi
 
     printf "Day %d Results:\n" $day
-    odin run "d${day}" $SPEED_FLAGS -out:builds/"d${i}"
+    odin run "d${day}" $SPEED_FLAGS -out:builds/"d${day}" -- "./input/d${day}.txt"
     printf "\n"
   fi
 done

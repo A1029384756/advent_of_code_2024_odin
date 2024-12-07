@@ -8,7 +8,7 @@ import "core:time"
 
 @(optimization_mode = "none")
 main :: proc() {
-	input_bytes, err := os2.read_entire_file("./input/d4.txt", context.allocator)
+	input_bytes, err := os2.read_entire_file(os2.args[1], context.allocator)
 	assert(err == nil)
 	defer delete(input_bytes)
 
