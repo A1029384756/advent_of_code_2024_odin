@@ -16,8 +16,8 @@ main :: proc() {
 
 	input := string(input_bytes)
 
-	WARMUP_ITERATIONS :: 5
-	NUM_ITERATIONS :: 10
+	WARMUP_ITERATIONS :: 1000
+	NUM_ITERATIONS :: 10_000
 
 	{
 		max_t, total_t: time.Duration
@@ -62,22 +62,23 @@ main :: proc() {
 	}
 }
 
-test_operation_ltr :: proc(nums: []int, ops: bit_set[0 ..< 64], expected: int) -> bool {
-	res: int
-	for idx in 0 ..< len(nums) {
-		if idx == 0 {
-			res = nums[idx]
-			continue
-		}
+count_digits :: proc(val: int) -> int {
+	assert(val >= 0)
+	res := 10
+	for val >= res do res *= 10
+	return res
+}
 
-		if idx - 1 in ops {
-			res *= nums[idx]
-		} else {
-			res += nums[idx]
-		}
-	}
+test_operations :: proc(ops: []int, expected: int, part_2 := false) -> bool {
+	if expected == 0 && len(ops) == 0 do return true
+	else if len(ops) == 0 do return false
+	last_op := ops[len(ops) - 1]
+	next_ops := ops[:len(ops) - 1]
 
-	return res == expected
+	if expected % last_op == 0 && test_operations(next_ops, expected / last_op, part_2) do return true
+	if part_2 && (expected - last_op) % count_digits(last_op) == 0 && test_operations(next_ops, (expected - last_op) / count_digits(last_op), part_2) do return true
+	if expected - last_op >= 0 && test_operations(next_ops, expected - last_op, part_2) do return true
+	return false
 }
 
 p1 :: proc(input: string) -> (res: int) {
@@ -86,61 +87,17 @@ p1 :: proc(input: string) -> (res: int) {
 		delim := c.find_fast(line, ':')
 		lhs := c.parse_int_fast(line[:delim])
 
-		nums: sa.Small_Array(64, int)
-		nums_str := line[delim + 2:]
-		for num in c.split_iterator_fast(&nums_str, ' ') {
-			sa.append(&nums, c.parse_int_fast(num))
+		ops: sa.Small_Array(64, int)
+		ops_str := line[delim + 2:]
+		for num in c.split_iterator_fast(&ops_str, ' ') {
+			sa.append(&ops, c.parse_int_fast(num))
 		}
 
-		ops: bit_set[0 ..< 64]
-		permutations: for i in 0 ..< 1 << uint(sa.len(nums) - 1) {
-			ops = transmute(bit_set[0 ..< 64])(transmute(int)ops + 1)
-			if test_operation_ltr(sa.slice(&nums), ops, lhs) {
-				res += lhs
-				break permutations
-			}
+		if test_operations(sa.slice(&ops), lhs) {
+			res += lhs
 		}
 	}
 	return
-}
-
-Operation :: enum {
-	Add,
-	Mult,
-	Concat,
-}
-
-concat :: proc(a, b: int) -> int {
-	return a * power(10, math.count_digits_of_base(b, 10)) + b
-}
-
-test_operations_all :: proc(nums: []int, ops: []Operation, expected: int) -> bool {
-	res: int
-	for idx in 0 ..< len(nums) {
-		if idx == 0 {
-			res = nums[idx]
-			continue
-		}
-
-		switch ops[idx - 1] {
-		case .Add:
-			res += nums[idx]
-		case .Mult:
-			res *= nums[idx]
-		case .Concat:
-			res = concat(res, nums[idx])
-		}
-	}
-
-	return res == expected
-}
-
-power :: proc(base, exponent: $T) -> T {
-	result: T = 1
-	for _ in 0 ..< exponent {
-		result *= base
-	}
-	return result
 }
 
 p2 :: proc(input: string) -> (res: int) {
@@ -149,26 +106,16 @@ p2 :: proc(input: string) -> (res: int) {
 		delim := c.find_fast(line, ':')
 		lhs := c.parse_int_fast(line[:delim])
 
-		nums: sa.Small_Array(64, int)
-		nums_str := line[delim + 2:]
-		for num in c.split_iterator_fast(&nums_str, ' ') {
-			sa.append(&nums, c.parse_int_fast(num))
+		ops: sa.Small_Array(64, int)
+		ops_str := line[delim + 2:]
+		for num in c.split_iterator_fast(&ops_str, ' ') {
+			sa.append(&ops, c.parse_int_fast(num))
 		}
 
-		ops: sa.Small_Array(64, Operation)
-		sa.resize(&ops, sa.len(nums) - 1)
-
-		permutations: for i in 0 ..< power(3, sa.len(ops)) {
-			value := i
-			for &elem in sa.slice(&ops) {
-				elem = cast(Operation)(value % 3)
-				value /= 3
-			}
-
-			if test_operations_all(sa.slice(&nums), sa.slice(&ops), lhs) {
-				res += lhs
-				break permutations
-			}
+		if test_operations(sa.slice(&ops), lhs) {
+			res += lhs
+		} else if test_operations(sa.slice(&ops), lhs, true) {
+			res += lhs
 		}
 	}
 	return
@@ -186,10 +133,4 @@ p2_test :: proc(t: ^testing.T) {
 	input := #load("./p1_sample.txt", string)
 	res := p2(input)
 	testing.expectf(t, res == 11387, "expected %d, got %d", 11387, res)
-}
-
-@(test)
-concat_test :: proc(t: ^testing.T) {
-	testing.expect(t, concat(15, 6) == 156)
-	testing.expect(t, concat(12, 345) == 12345)
 }
