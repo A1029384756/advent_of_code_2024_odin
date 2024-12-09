@@ -70,44 +70,31 @@ Block :: struct {
 }
 
 p1 :: proc(input: string) -> (res: int) {
-	blocks: [dynamic]Block
-	defer delete(blocks)
-	free_list: [dynamic]Block
-	defer delete(free_list)
+	disk: [dynamic]int
+	defer delete(disk)
 
-	free_space: bool
-	block_id, curr_ptr: int
-	for idx in 0 ..< len(input) {
-		curr_int := c.parse_int_fast(input[idx:idx + 1])
-		if curr_int > 0 {
-			if !free_space {
-				for i in 0 ..< curr_int {
-					append(&blocks, Block{block_id, curr_ptr + i, 1})
-				}
-				block_id += 1
-			} else {
-				append(&free_list, Block{0, curr_ptr, curr_int})
-			}
+	is_free: bool
+	block_id: int
+	for char in input {
+		curr_int := int(char - '0')
+		for i in 0 ..< curr_int {
+			append(&disk, is_free ? -1 : block_id)
 		}
-		free_space = !free_space
-		curr_ptr += curr_int
+		block_id += is_free ? 0 : 1
+		is_free = !is_free
 	}
 
-	#reverse for &block, idx in blocks {
-		if len(free_list) == 0 do continue
-		if free_list[0].ptr > block.ptr do break
-
-		block.ptr = free_list[0].ptr
-		if free_list[0].size == 1 {
-			pop_front(&free_list)
-		} else {
-			free_list[0].size -= 1
-			free_list[0].ptr += 1
-		}
+	i := 0
+	j := len(disk) - 1
+	for i < j {
+		if disk[i] != -1 do i += 1
+		if disk[j] == -1 do j -= 1
+		if disk[i] == -1 && disk[j] != -1 do slice.swap(disk[:], i, j)
 	}
 
-	for block, idx in blocks {
-		res += block.id * block.ptr
+	for data, idx in disk {
+		if data < 0 do break
+		res += data * idx
 	}
 
 	return
@@ -119,37 +106,32 @@ p2 :: proc(input: string) -> (res: int) {
 	free_list: [dynamic]Block
 	defer delete(free_list)
 
-	free_space: bool
+	is_free: bool
 	block_id, curr_ptr: int
-	for idx in 0 ..< len(input) {
-		curr_int := c.parse_int_fast(input[idx:idx + 1])
-		if curr_int > 0 {
-			if !free_space {
-				append(&files, Block{block_id, curr_ptr, curr_int})
-				block_id += 1
-			} else {
-				append(&free_list, Block{0, curr_ptr, curr_int})
-			}
-		}
-		free_space = !free_space
+	for char in input {
+		curr_int := int(char - '0')
+		append(is_free ? &free_list : &files, Block{block_id, curr_ptr, curr_int})
 		curr_ptr += curr_int
+		block_id += is_free ? 0 : 1
+		is_free = !is_free
 	}
 
-	#reverse for &file, idx in files {
-		context.user_ptr = &files
-		context.user_index = idx
-		first_free := slice.linear_search_proc(free_list[:], proc(free_space: Block) -> bool {
-			curr_file := (cast(^[dynamic]Block)context.user_ptr)[context.user_index]
-			return free_space.size >= curr_file.size && free_space.ptr < curr_file.ptr
-		}) or_continue
+	max_file_size := max(int)
+	#reverse for &file in files {
+		if file.size > max_file_size do continue
 
-		file.ptr = free_list[first_free].ptr
-		if free_list[first_free].size == file.size {
-			ordered_remove(&free_list, first_free)
-		} else {
-			free_list[first_free].size -= file.size
-			free_list[first_free].ptr += file.size
+		moved: bool
+		for &free_elem in free_list {
+			if file.ptr < free_elem.ptr do continue
+			if free_elem.size < file.size do continue
+
+			file.ptr = free_elem.ptr
+			free_elem.size -= file.size
+			free_elem.ptr += file.size
+			moved = true
+			break
 		}
+		if !moved do max_file_size = file.size
 	}
 
 	for file in files {
