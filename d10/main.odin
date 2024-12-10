@@ -1,6 +1,7 @@
 package main
 
 import c "../common"
+import q "core:container/queue"
 import sa "core:container/small_array"
 import "core:fmt"
 import "core:math"
@@ -17,8 +18,8 @@ main :: proc() {
 
 	input := string(input_bytes)
 
-	WARMUP_ITERATIONS :: 1
-	NUM_ITERATIONS :: 10
+	WARMUP_ITERATIONS :: 10
+	NUM_ITERATIONS :: 100
 
 	{
 		max_t, total_t: time.Duration
@@ -78,86 +79,106 @@ Dir_Vecs := [Dir][2]int {
 
 Pos :: [2]int
 
-p1 :: proc(input: string) -> (res: int) {
-	size := c.grid_size(input)
+p1 :: proc(i: string) -> (res: int) {
+	context.allocator = context.temp_allocator
+	defer free_all(context.temp_allocator)
+
+	size := c.grid_size(i)
+	input := make([]u8, len(i) + size.x)
+	for i in 0 ..< size.x {
+		input[len(input) - i - 1] = '\n'
+	}
+	copy(input[:], i[:])
+
+	trailheads: [dynamic][2]int
 	for y in 0 ..< size.y {
 		for x in 0 ..< size.x {
 			if input[c.coord_to_idx({x, y}, size)] == '0' {
-				score: int
-
-				curr_pos := Pos{x, y}
-
-				visited := make([]bool, len(input))
-				defer delete(visited)
-				visited[c.coord_to_idx(curr_pos, size)] = true
-
-				queue: [dynamic]Pos
-				defer delete(queue)
-				append(&queue, curr_pos)
-
-				for len(queue) > 0 {
-					v := pop_front(&queue)
-					if input[c.coord_to_idx(v, size)] == '9' {
-						score += 1
-					}
-
-					for dir in Dir_Vecs {
-						if !c.coord_valid(dir + v, size) do continue
-						curr_elevation := int(input[c.coord_to_idx(v, size)])
-						next_elevation := int(input[c.coord_to_idx(dir + v, size)])
-						if next_elevation - curr_elevation != 1 do continue
-						if visited[c.coord_to_idx(dir + v, size)] do continue
-
-						visited[c.coord_to_idx(dir + v, size)] = true
-						append(&queue, dir + v)
-					}
-				}
-
-				res += score
+				append(&trailheads, [2]int{x, y})
 			}
 		}
 	}
+
+	for trailhead in trailheads {
+		visited := make([]bool, len(input))
+		visited[c.coord_to_idx(trailhead, size)] = true
+
+		queue: q.Queue(Pos)
+		q.init(&queue)
+		q.push_back(&queue, trailhead)
+
+		for q.len(queue) > 0 {
+			v := q.pop_front(&queue)
+			if input[c.coord_to_idx(v, size)] == '9' {
+				res += 1
+			}
+
+			for dir in Dir_Vecs {
+				next_idx := c.coord_to_idx(dir + v, size)
+
+				if next_idx < 0 || input[next_idx] == '\n' do continue
+				curr_elevation := int(input[c.coord_to_idx(v, size)])
+				next_elevation := int(input[next_idx])
+				if next_elevation - curr_elevation != 1 do continue
+				if visited[next_idx] do continue
+
+				visited[next_idx] = true
+				q.push_back(&queue, dir + v)
+			}
+		}
+	}
+
 	return
 }
 
-p2 :: proc(input: string) -> (res: int) {
-	size := c.grid_size(input)
+p2 :: proc(i: string) -> (res: int) {
+	context.allocator = context.temp_allocator
+	defer free_all(context.temp_allocator)
+
+	size := c.grid_size(i)
+	input := make([]u8, len(i) + size.x)
+	for i in 0 ..< size.x {
+		input[len(input) - i - 1] = '\n'
+	}
+	copy(input[:], i[:])
+
+	trailheads: [dynamic][2]int
 	for y in 0 ..< size.y {
 		for x in 0 ..< size.x {
 			if input[c.coord_to_idx({x, y}, size)] == '0' {
-				score: int
-
-				curr_pos := Pos{x, y}
-
-				visited := make([]bool, len(input))
-				defer delete(visited)
-				visited[c.coord_to_idx(curr_pos, size)] = true
-
-				queue: [dynamic]Pos
-				defer delete(queue)
-				append(&queue, curr_pos)
-
-				for len(queue) > 0 {
-					v := pop_front(&queue)
-					if input[c.coord_to_idx(v, size)] == '9' {
-						score += 1
-					}
-
-					for dir in Dir_Vecs {
-						if !c.coord_valid(dir + v, size) do continue
-						curr_elevation := int(input[c.coord_to_idx(v, size)])
-						next_elevation := int(input[c.coord_to_idx(dir + v, size)])
-						if next_elevation - curr_elevation != 1 do continue
-
-						visited[c.coord_to_idx(dir + v, size)] = true
-						append(&queue, dir + v)
-					}
-				}
-				res += score
+				append(&trailheads, [2]int{x, y})
 			}
-
 		}
 	}
+
+	for trailhead in trailheads {
+		visited := make([]bool, len(input))
+		visited[c.coord_to_idx(trailhead, size)] = true
+
+		queue: q.Queue(Pos)
+		q.init(&queue)
+		q.push_back(&queue, trailhead)
+
+		for q.len(queue) > 0 {
+			v := q.pop_front(&queue)
+			if input[c.coord_to_idx(v, size)] == '9' {
+				res += 1
+			}
+
+			for dir in Dir_Vecs {
+				next_idx := c.coord_to_idx(dir + v, size)
+
+				if next_idx < 0 || input[next_idx] == '\n' do continue
+				curr_elevation := int(input[c.coord_to_idx(v, size)])
+				next_elevation := int(input[next_idx])
+				if next_elevation - curr_elevation != 1 do continue
+
+				visited[next_idx] = true
+				q.push_back(&queue, dir + v)
+			}
+		}
+	}
+
 	return
 }
 
