@@ -64,14 +64,12 @@ main :: proc() {
 }
 
 Dir :: enum {
-	NONE,
 	UP,
 	DOWN,
 	LEFT,
 	RIGHT,
 }
 Dir_Vecs := [Dir][2]int {
-	.NONE  = {0, 0},
 	.UP    = {0, -1},
 	.DOWN  = {0, 1},
 	.LEFT  = {-1, 0},
@@ -89,9 +87,9 @@ p1 :: proc(input: string) -> (res: int) {
 
 				curr_pos := Pos{x, y}
 
-				visited: [dynamic]Pos
+				visited := make([]bool, len(input))
 				defer delete(visited)
-				append(&visited, curr_pos)
+				visited[c.coord_to_idx(curr_pos, size)] = true
 
 				queue: [dynamic]Pos
 				defer delete(queue)
@@ -108,10 +106,9 @@ p1 :: proc(input: string) -> (res: int) {
 						curr_elevation := int(input[c.coord_to_idx(v, size)])
 						next_elevation := int(input[c.coord_to_idx(dir + v, size)])
 						if next_elevation - curr_elevation != 1 do continue
-						_, found := slice.linear_search(visited[:], dir + v)
-						if found do continue
+						if visited[c.coord_to_idx(dir + v, size)] do continue
 
-						append(&visited, dir + v)
+						visited[c.coord_to_idx(dir + v, size)] = true
 						append(&queue, dir + v)
 					}
 				}
@@ -132,9 +129,9 @@ p2 :: proc(input: string) -> (res: int) {
 
 				curr_pos := Pos{x, y}
 
-				visited: [dynamic]Pos
+				visited := make([]bool, len(input))
 				defer delete(visited)
-				append(&visited, curr_pos)
+				visited[c.coord_to_idx(curr_pos, size)] = true
 
 				queue: [dynamic]Pos
 				defer delete(queue)
@@ -152,7 +149,7 @@ p2 :: proc(input: string) -> (res: int) {
 						next_elevation := int(input[c.coord_to_idx(dir + v, size)])
 						if next_elevation - curr_elevation != 1 do continue
 
-						append(&visited, dir + v)
+						visited[c.coord_to_idx(dir + v, size)] = true
 						append(&queue, dir + v)
 					}
 				}
