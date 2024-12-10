@@ -18,8 +18,8 @@ main :: proc() {
 
 	input := string(input_bytes)
 
-	WARMUP_ITERATIONS :: 10
-	NUM_ITERATIONS :: 100
+	WARMUP_ITERATIONS :: 100
+	NUM_ITERATIONS :: 1000
 
 	{
 		max_t, total_t: time.Duration
@@ -99,12 +99,15 @@ p1 :: proc(i: string) -> (res: int) {
 		}
 	}
 
-	for trailhead in trailheads {
-		visited := make([]bool, len(input))
-		visited[c.coord_to_idx(trailhead, size)] = true
+	visited := make([]bool, len(input))
+	queue: q.Queue(Pos)
+	q.init(&queue)
 
-		queue: q.Queue(Pos)
-		q.init(&queue)
+	for trailhead in trailheads {
+		defer q.clear(&queue)
+		defer slice.zero(visited)
+
+		visited[c.coord_to_idx(trailhead, size)] = true
 		q.push_back(&queue, trailhead)
 
 		for q.len(queue) > 0 {
@@ -151,12 +154,15 @@ p2 :: proc(i: string) -> (res: int) {
 		}
 	}
 
-	for trailhead in trailheads {
-		visited := make([]bool, len(input))
-		visited[c.coord_to_idx(trailhead, size)] = true
+	visited := make([]bool, len(input))
+	queue: q.Queue(Pos)
+	q.init(&queue)
 
-		queue: q.Queue(Pos)
-		q.init(&queue)
+	for trailhead in trailheads {
+		defer q.clear(&queue)
+		defer slice.zero(visited)
+
+		visited[c.coord_to_idx(trailhead, size)] = true
 		q.push_back(&queue, trailhead)
 
 		for q.len(queue) > 0 {
