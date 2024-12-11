@@ -88,22 +88,27 @@ split_stone :: proc "contextless" (stone: int) -> (l, r: int) {
 	return
 }
 
-simulate_stone :: proc(cache: ^map[int]int, stone, iters: int) -> (res: int) {
-	if iters == 0 do return 1
+simulate_stone :: proc(cache: []int, stone, rem_iters, total_iters: int) -> (res: int) {
+	if rem_iters == 0 do return 1
 
-	value, found := cache[stone * 1024 + iters]
-	if found do return value
-
-	if stone == 0 {
-		res += simulate_stone(cache, 1, iters - 1)
-	} else if count_digits(stone) % 2 == 0 {
-		l, r := split_stone(stone)
-		res += simulate_stone(cache, l, iters - 1) + simulate_stone(cache, r, iters - 1)
-	} else {
-		res += simulate_stone(cache, stone * 2024, iters - 1)
+	if stone < len(cache) / total_iters {
+		if cached := cache[stone * total_iters + rem_iters]; cached > 0 do return cached
 	}
 
-	cache[stone * 1024 + iters] = res
+	if stone == 0 {
+		res += simulate_stone(cache, 1, rem_iters - 1, total_iters)
+	} else if count_digits(stone) % 2 == 0 {
+		l, r := split_stone(stone)
+		res +=
+			simulate_stone(cache, l, rem_iters - 1, total_iters) +
+			simulate_stone(cache, r, rem_iters - 1, total_iters)
+	} else {
+		res += simulate_stone(cache, stone * 2024, rem_iters - 1, total_iters)
+	}
+
+	if stone < len(cache) / total_iters {
+		cache[stone * total_iters + rem_iters] = res
+	}
 	return
 }
 
@@ -118,10 +123,10 @@ p1 :: proc(input: string) -> (res: int) {
 		}
 	}
 
-	cache: map[int]int
+	cache := make([]int, 100_000)
 	defer delete(cache)
 	for stone in sa.slice(&stones) {
-		res += simulate_stone(&cache, stone, 25)
+		res += simulate_stone(cache[:], stone, 25, 25)
 	}
 
 	return
@@ -138,10 +143,10 @@ p2 :: proc(input: string) -> (res: int) {
 		}
 	}
 
-	cache: map[int]int
+	cache := make([]int, 100_000)
 	defer delete(cache)
 	for stone in sa.slice(&stones) {
-		res += simulate_stone(&cache, stone, 75)
+		res += simulate_stone(cache[:], stone, 75, 75)
 	}
 
 	return
