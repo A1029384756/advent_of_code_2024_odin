@@ -17,8 +17,8 @@ main :: proc() {
 
 	input := string(input_bytes)
 
-	WARMUP_ITERATIONS :: 1
-	NUM_ITERATIONS :: 10
+	WARMUP_ITERATIONS :: 10
+	NUM_ITERATIONS :: 100
 
 	{
 		max_t, total_t: time.Duration
