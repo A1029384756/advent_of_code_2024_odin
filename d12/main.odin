@@ -76,7 +76,6 @@ Dir_Vecs := [Dir][2]int {
 	.RIGHT = {1, 0},
 }
 
-
 p1 :: proc(i: string) -> (res: int) {
 	context.allocator = context.temp_allocator
 	defer free_all(context.temp_allocator)
@@ -176,38 +175,33 @@ p2 :: proc(i: string) -> (res: int) {
 					for set in check_sets {
 						a := set[0] + pos
 						b := set[1] + pos
-
-						a_no_match :=
-							!c.coord_valid(a, size) || input[c.coord_to_idx(a, size)] != curr_patch
-						b_no_match :=
-							!c.coord_valid(b, size) || input[c.coord_to_idx(b, size)] != curr_patch
-
-						if a_no_match && b_no_match do corners += 1
-					}
-				}
-
-				// inner corners
-				{
-					check_sets := [][2][2]int {
-						{Dir_Vecs[.UP], Dir_Vecs[.LEFT]},
-						{Dir_Vecs[.UP], Dir_Vecs[.RIGHT]},
-						{Dir_Vecs[.DOWN], Dir_Vecs[.LEFT]},
-						{Dir_Vecs[.DOWN], Dir_Vecs[.RIGHT]},
-					}
-
-					for set in check_sets {
-						a := set[0] + pos
-						b := set[1] + pos
 						d := set[0] + set[1] + pos
 
-						a_match :=
-							c.coord_valid(a, size) && input[c.coord_to_idx(a, size)] == curr_patch
-						b_match :=
-							c.coord_valid(b, size) && input[c.coord_to_idx(b, size)] == curr_patch
-						d_no_match :=
-							!c.coord_valid(d, size) || input[c.coord_to_idx(d, size)] != curr_patch
+						// outer corners
+						{
+							a_no_match :=
+								!c.coord_valid(a, size) ||
+								input[c.coord_to_idx(a, size)] != curr_patch
+							b_no_match :=
+								!c.coord_valid(b, size) ||
+								input[c.coord_to_idx(b, size)] != curr_patch
 
-						if a_match && b_match && d_no_match do corners += 1
+							if a_no_match && b_no_match do corners += 1
+						}
+						// inner corners
+						{
+							a_match :=
+								c.coord_valid(a, size) &&
+								input[c.coord_to_idx(a, size)] == curr_patch
+							b_match :=
+								c.coord_valid(b, size) &&
+								input[c.coord_to_idx(b, size)] == curr_patch
+							d_no_match :=
+								!c.coord_valid(d, size) ||
+								input[c.coord_to_idx(d, size)] != curr_patch
+
+							if a_match && b_match && d_no_match do corners += 1
+						}
 					}
 				}
 
