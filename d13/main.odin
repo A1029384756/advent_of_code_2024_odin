@@ -62,20 +62,16 @@ main :: proc() {
 }
 
 parse_line :: proc(input: string) -> (res: [2]int) {
-	num_start_idx, num_end_idx: int
-	num_start_idx = c.find_fast(input, 'X')
-	num_start_idx += 2
-	for num_end_idx = num_start_idx; num_end_idx < len(input); num_end_idx += 1 {
-		if input[num_end_idx] < '0' || input[num_end_idx] > '9' do break
+	idx: int
+	for idx = 0;; idx += 1 {
+		if input[idx] < '0' || input[idx] > '9' do break
+		res.x = res.x * 10 + int(input[idx] - '0')
 	}
-	res.x = c.parse_int_fast(input[num_start_idx:num_end_idx])
 
-	num_start_idx = c.find_fast(input, 'Y')
-	num_start_idx += 2
-	for num_end_idx = num_start_idx; num_end_idx < len(input); num_end_idx += 1 {
-		if input[num_end_idx] < '0' || input[num_end_idx] > '9' do break
+	for idx = idx + 4; idx < len(input); idx += 1 {
+		if input[idx] < '0' || input[idx] > '9' do break
+		res.y = res.y * 10 + int(input[idx] - '0')
 	}
-	res.y = c.parse_int_fast(input[num_start_idx:num_end_idx])
 	return
 }
 
@@ -92,28 +88,26 @@ p1 :: proc(input: string) -> (res: int) {
 	da, db, target: [2]int
 	line_idx: int
 	for line in c.split_iterator_fast(&input, '\n') {
-		if len(line) == 0 {
-			da, db, target = {}, {}, {}
-			line_idx = 0
-			continue
-		}
-
-		nums := parse_line(line)
 		switch line_idx {
 		case 0:
+			nums := parse_line(line[12:])
 			da = nums
 			line_idx = 1
 		case 1:
+			nums := parse_line(line[12:])
 			db = nums
 			line_idx = 2
 		case 2:
+			nums := parse_line(line[9:])
 			target = nums
 			na, nb, valid := calc_presses(da, db, target)
 			if valid {
 				res += 3 * na + nb
 			}
-		case:
-			unreachable()
+			line_idx = 3
+		case 3:
+			da, db, target = {}, {}, {}
+			line_idx = 0
 		}
 	}
 	return
@@ -125,28 +119,26 @@ p2 :: proc(input: string) -> (res: int) {
 	da, db, target: [2]int
 	line_idx: int
 	for line in c.split_iterator_fast(&input, '\n') {
-		if len(line) == 0 {
-			da, db, target = {}, {}, {}
-			line_idx = 0
-			continue
-		}
-
-		nums := parse_line(line)
 		switch line_idx {
 		case 0:
+			nums := parse_line(line[12:])
 			da = nums
 			line_idx = 1
 		case 1:
+			nums := parse_line(line[12:])
 			db = nums
 			line_idx = 2
 		case 2:
+			nums := parse_line(line[9:])
 			target = nums
 			na, nb, valid := calc_presses(da, db, target + {10000000000000, 10000000000000})
 			if valid {
 				res += 3 * na + nb
 			}
-		case:
-			unreachable()
+      line_idx = 3
+		case 3:
+			da, db, target = {}, {}, {}
+			line_idx = 0
 		}
 	}
 	return
