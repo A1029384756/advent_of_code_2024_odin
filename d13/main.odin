@@ -135,7 +135,7 @@ p2 :: proc(input: string) -> (res: int) {
 			if valid {
 				res += 3 * na + nb
 			}
-      line_idx = 3
+			line_idx = 3
 		case 3:
 			da, db, target = {}, {}, {}
 			line_idx = 0
