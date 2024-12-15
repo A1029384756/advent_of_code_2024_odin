@@ -18,8 +18,8 @@ main :: proc() {
 
 	input := string(input_bytes)
 
-	WARMUP_ITERATIONS :: 1
-	NUM_ITERATIONS :: 1
+	WARMUP_ITERATIONS :: 10
+	NUM_ITERATIONS :: 100
 
 	{
 		max_t, total_t: time.Duration
@@ -95,18 +95,7 @@ robot_parse :: proc(input: string) -> (res: Robot) {
 }
 
 robot_move :: proc(robot: ^Robot, size: [2]int) {
-	robot.pos += robot.vel
-	if robot.pos.x >= size.x {
-		robot.pos.x %= size.x
-	} else if robot.pos.x < 0 {
-		robot.pos.x = size.x + robot.pos.x
-	}
-
-	if robot.pos.y >= size.y {
-		robot.pos.y %= size.y
-	} else if robot.pos.y < 0 {
-		robot.pos.y = size.y + robot.pos.y
-	}
+	robot.pos = (((robot.pos + robot.vel) % size) + size) % size
 }
 
 p1 :: proc(input: string, size: [2]int) -> int {
@@ -162,30 +151,16 @@ p2 :: proc(input: string, size: [2]int) -> (res: int) {
 
 	density := make([]int, size.x * size.y)
 	defer delete(density)
-	for {
+	for res = 1;; res += 1 {
+		max_density: int
 		slice.zero(density)
 		for &robot in robots {
 			robot_move(&robot, size)
 			density[size.x * robot.pos.y + robot.pos.x] += 1
+			max_density = max(density[size.x * robot.pos.y + robot.pos.x], max_density)
 		}
-
-		cur_run, max_run: int
-		for i := 0; i < len(density) - 1; i += 1 {
-			if density[i] > 0 && density[i + 1] > 0 {
-				cur_run += 1
-			} else {
-				max_run = max(max_run, cur_run)
-				cur_run = 0
-			}
-		}
-
-		if max_run > 5 {
-			break
-		}
-
-		res += 1
+		if max_density == 1 do break
 	}
-	res += 1
 
 	return
 }
