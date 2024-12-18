@@ -127,8 +127,8 @@ p1 :: proc(input: string, n_simulate: int, size: [2]int) -> (res: int) {
 
 p2 :: proc(input: string, size: [2]int) -> (res: [2]int) {
 	input := input
-	grid := make([]bool, size.x * size.y)
-	defer delete(grid)
+	points: [dynamic][2]int
+	defer delete(points)
 
 	for line in c.split_iterator_fast(&input, '\n') {
 		comma_pos := c.find_fast(line, ',')
@@ -136,11 +136,26 @@ p2 :: proc(input: string, size: [2]int) -> (res: [2]int) {
 			c.parse_int_fast(line[:comma_pos]),
 			c.parse_int_fast(line[comma_pos + 1:]),
 		}
+		append(&points, corrupted_pos)
+	}
 
-		grid[pos_to_idx(corrupted_pos, size)] = true
+	grid := make([]bool, size.x * size.y)
+	defer delete(grid)
 
-		shortest := bfs(grid, 0, size - 1, size)
-		if shortest == -1 do return corrupted_pos
+	low := 0
+	high := len(points) - 1
+	for low <= high {
+		slice.zero(grid)
+
+		mid := (high + low) / 2
+		for i in 0 ..= mid {
+			grid[pos_to_idx(points[i], size)] = true
+		}
+
+		unblocked := bfs(grid, 0, size - 1, size) != -1
+		if unblocked do low = mid + 1
+		else if low == mid do return points[mid]
+		else do high = mid
 	}
 
 	return -1
