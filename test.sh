@@ -4,6 +4,8 @@ if [[ ! -d "tests" ]]; then
   mkdir tests
 fi
 
+exit_code=0
+
 for day in "$@"
 do
   if [[ "$day" = "all" ]]; then
@@ -13,10 +15,12 @@ do
         continue
       fi
       printf "Day %d Results:\n" $i
-      odin test "d${i}" -out:tests/"d${i}"
+      if ! odin test "d${i}" -out:tests/"d${i}"; then
+        exit_code=1
+      fi
       printf "\n"
     done
-    exit 0
+    exit $exit_code
   fi
 
   re='^[0-9]+$'
@@ -31,7 +35,11 @@ do
     fi
 
     printf "Day %d Results:\n" $day
-    odin test "d${day}" -out:tests/"d${day}"
+    if ! odin test "d${day}" -out:tests/"d${day}"; then
+      exit_code=1
+    fi
     printf "\n"
   fi
 done
+
+exit $exit_code
