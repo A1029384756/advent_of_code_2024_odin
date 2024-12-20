@@ -125,7 +125,7 @@ p1 :: proc(input: string, threshhold: int) -> (res: int) {
 	bfs(input, start, end, size, &path_pos)
 
 	for fp_idx := 0; fp_idx < len(path_pos) - 1; fp_idx += 1 {
-		for sp_idx := fp_idx + 1; sp_idx < len(path_pos); sp_idx += 1 {
+		for sp_idx := fp_idx + threshhold; sp_idx < len(path_pos); sp_idx += 1 {
 			saved_by_skip := sp_idx - fp_idx
 			fp := path_pos[fp_idx]
 			sp := path_pos[sp_idx]
@@ -158,7 +158,7 @@ p2 :: proc(input: string, threshhold: int) -> (res: int) {
 	bfs(input, start, end, size, &path_pos)
 
 	for fp_idx := 0; fp_idx < len(path_pos) - 1; fp_idx += 1 {
-		for sp_idx := fp_idx + 1; sp_idx < len(path_pos); sp_idx += 1 {
+		for sp_idx := fp_idx + threshhold; sp_idx < len(path_pos); sp_idx += 1 {
 			saved_by_skip := sp_idx - fp_idx
 			fp := path_pos[fp_idx]
 			sp := path_pos[sp_idx]
