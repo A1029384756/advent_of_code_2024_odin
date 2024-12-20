@@ -130,13 +130,11 @@ p1 :: proc(input: string, threshhold: int) -> (res: int) {
 			fp := path_pos[fp_idx]
 			sp := path_pos[sp_idx]
 
-			if (fp.x == sp.x) || (fp.y == sp.y) {
-				xdiff := abs(fp.x - sp.x)
-				ydiff := abs(fp.y - sp.y)
-				if xdiff + ydiff <= 2 {
-					saved := saved_by_skip - (xdiff + ydiff)
-					if saved >= threshhold do res += 1
-				}
+			xdiff := abs(fp.x - sp.x)
+			ydiff := abs(fp.y - sp.y)
+			if xdiff + ydiff <= 2 {
+				saved := saved_by_skip - (xdiff + ydiff)
+				if saved >= threshhold do res += 1
 			}
 		}
 	}
